@@ -1,6 +1,34 @@
 import streamlit_app as st
+from langflow.load import run_flow_from_json
 from PIL import Image
+import json
 
+import logging
+import http.client as http_client
+
+http_client.HTTPConnection.debuglevel = 1
+
+# You must initialize logging, as by default it will not do anything
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
+TWEAKS = {
+  "ChatInput-HeWl6": {},
+  "AstraVectorStoreComponent-FIN66": {},
+  "ParseData-gNi04": {},
+  "Prompt-Hy4kp": {},
+  "ChatOutput-z24kV": {},
+  "SplitText-dAwQi": {},
+  "File-scEPA": {},
+  "AstraVectorStoreComponent-RsC1t": {},
+  "URL-qhZZi": {},
+  "CohereEmbeddings-BUsbP": {},
+  "CohereEmbeddings-QMoaR": {},
+  "CohereModel-MlqY4": {}
+}
 st.set_page_config(
     page_title="GynaeGenius",
     page_icon="assets/gynae_genius.png",
@@ -53,9 +81,7 @@ st.markdown("""
 logo = Image.open("assets/gynae_genius.png") 
 st.image(logo, width=160)
 
-
 st.markdown("<h1 class='logo-text'>Meet your GynaeGenius</h1>", unsafe_allow_html=True)
-# st.markdown("<p class='subheader'>Mama and Baby Care</p>", unsafe_allow_html=True)
 
 st.write(
     "This is a GynaeGenius bot to generate responses based on your symptoms. Please feel free to ask questions. "
@@ -66,7 +92,6 @@ st.write(
 if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.messages.append({"role": "assistant", "content": "Hello! I'm GynaeGenius, your AI assistant for maternal and infant health queries. How can I help you today?"})
-
 
 # Display the existing chat messages
 for message in st.session_state.messages:
@@ -80,12 +105,23 @@ if question := st.chat_input("Type your question here..."):
     with st.chat_message("human"):
         st.markdown(question)
 
-    # Generate the answer
-    answer = f"""You asked: {question}"""
+    # Extract the message text from the output
+    with st.spinner("Generating response..."):
+        output = run_flow_from_json(flow="RAG.json",
+                            input_value=question,
+                            fallback_to_env_vars=True, # False by default
+                            tweaks=TWEAKS)
+        result_data = output[0].outputs[0].results['message']
 
-    # Store the bot's answer in a session object for redrawing next time
-    st.session_state.messages.append({"role": "ai", "content": answer})
+        if result_data and hasattr(result_data, 'data'):
+            response_data = result_data.data
+            answer = response_data.get('text', "Please contact a professional doctor for further assistance.")
+        else:
+            answer = "Please contact a professional doctor for further assistance."
+        
+        # Store the bot's answer in a session object for redrawing next time
+        st.session_state.messages.append({"role": "assistant", "content": answer})
 
     # Draw the bot's answer
     with st.chat_message('assistant'):
-          st.markdown(answer)
+        st.markdown(answer)
