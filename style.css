@@ -1,0 +1,35 @@
+
+body {
+    color: #333;
+    background-color: #f0f0f0;
+}
+.stButton>button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background-color: #FF66C4;
+    color: white;
+    border: none;
+}
+.stButton>button:hover {
+    background-color: #e55ab0;
+}
+.stInfo {
+    background-color: #e8f0fe;
+    border-left: 4px solid #0CB8B6;
+    padding: 0.5rem;
+    margin: 1rem 0;
+}
+.stMarkdown {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+.logo-text {
+    font-size: 2.5rem;
+    color: #FF66C4;
+    margin-bottom: 0;
+}
+.subheader {
+    color: #0CB8B6;
+    font-size: 1.2rem;
+    margin-top: 0;
+}

@@ -5,7 +5,7 @@ from PIL import Image
 
 st.set_page_config(
     page_title="GynaeGenius",
-    page_icon="👩‍⚕️",
+    page_icon="assets/gynae_genius.png",
     layout="centered"
 )
 
@@ -13,7 +13,7 @@ st.markdown("""
     <style>
         body {
             color: #333;
-            background-color: #f0f0f0;
+            background-color: #0CB8B6;
         }
         .stButton>button {
             padding: 0.5rem 1rem;
@@ -35,6 +35,10 @@ st.markdown("""
             font-size: 1rem;
             line-height: 1.5;
         }
+        .logo {
+        display: block; 
+            margin: 0 auto;  
+            }
         .logo-text {
             font-size: 2.5rem;
             color: #FF66C4;
@@ -49,22 +53,22 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-logo = Image.open("assets/gynae_genius_logo.png") 
+logo = Image.open("assets/gynae_genius.png") 
 st.image(logo, width=160)
 
 
-st.markdown("<h1 class='logo-text'>Gynae Genius Bot</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='logo-text'>Meet your GynaeGenius</h1>", unsafe_allow_html=True)
 # st.markdown("<p class='subheader'>Mama and Baby Care</p>", unsafe_allow_html=True)
 
 st.write(
-    "This is a simple chatbot to generate responses based on your symptoms. Please feel free to ask questions. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
+    "This is a GynaeGenius bot to generate responses based on your symptoms. Please feel free to ask questions. "
+    "To use this app, you need to provide a key provided to you."
 )
 
 
-openai_api_key = st.text_input("OpenAI API Key", type="password")
+openai_api_key = st.text_input("GynaeGenius Key", type="password")
 if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
+    st.info("Please add your key to continue.", icon="🗝️")
 else:
     try:
         # Set the OpenAI API key
@@ -108,9 +112,9 @@ else:
             st.experimental_rerun()
 
     except openai.NotFoundError:
-        st.error("The provided OpenAI API key is invalid. Please check and try again.")
+        st.error("The provided key is invalid. Please check and try again.")
     except Exception as e:
-        st.error(f"An unexpected error occurred: Whoops! It seems like your OpenAI API Key is not valid, Please check and try again.")
+        st.error(f"An unexpected error occurred: Whoops! It seems like your Key is not valid, Please check and try again.")
 
 # Footer
 st.markdown("---")
