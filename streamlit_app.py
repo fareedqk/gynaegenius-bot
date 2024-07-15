@@ -1,8 +1,34 @@
 import streamlit as st
-import openai
-from openai import OpenAI
+from langflow.load import run_flow_from_json
 from PIL import Image
+import json
 
+import logging
+import http.client as http_client
+
+http_client.HTTPConnection.debuglevel = 1
+
+# You must initialize logging, as by default it will not do anything
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
+TWEAKS = {
+  "ChatInput-HeWl6": {},
+  "AstraVectorStoreComponent-FIN66": {},
+  "ParseData-gNi04": {},
+  "Prompt-Hy4kp": {},
+  "ChatOutput-z24kV": {},
+  "SplitText-dAwQi": {},
+  "File-scEPA": {},
+  "AstraVectorStoreComponent-RsC1t": {},
+  "URL-qhZZi": {},
+  "CohereEmbeddings-BUsbP": {},
+  "CohereEmbeddings-QMoaR": {},
+  "CohereModel-MlqY4": {}
+}
 st.set_page_config(
     page_title="GynaeGenius",
     page_icon="assets/gynae_genius.png",
@@ -13,7 +39,7 @@ st.markdown("""
     <style>
         body {
             color: #333;
-            background-color: #0CB8B6;
+            background-color: #F0F0F0;
         }
         .stButton>button {
             padding: 0.5rem 1rem;
@@ -51,71 +77,51 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
-
-
+# Title and display
 logo = Image.open("assets/gynae_genius.png") 
 st.image(logo, width=160)
 
-
 st.markdown("<h1 class='logo-text'>Meet your GynaeGenius</h1>", unsafe_allow_html=True)
-# st.markdown("<p class='subheader'>Mama and Baby Care</p>", unsafe_allow_html=True)
 
 st.write(
     "This is a GynaeGenius bot to generate responses based on your symptoms. Please feel free to ask questions. "
     "To use this app, you need to provide a key provided to you."
 )
 
+# Start with empty messages, stores in session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+    st.session_state.messages.append({"role": "assistant", "content": "Hello! I'm GynaeGenius, your AI assistant for maternal and infant health queries. How can I help you today?"})
 
-openai_api_key = st.text_input("GynaeGenius Key", type="password")
-if not openai_api_key:
-    st.info("Please add your key to continue.", icon="🗝️")
-else:
-    try:
-        # Set the OpenAI API key
-        openai.api_key = openai_api_key
+# Display the existing chat messages
+for message in st.session_state.messages:
+    st.chat_message(message["role"]).markdown(message["content"])
 
-        # Create a session state variable to store the chat messages
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
-            st.session_state.messages.append({"role": "assistant", "content": "Hello! I'm GynaeGenius, your AI assistant for maternal and infant health. How can I help you today?"})
+# Chat input
+if question := st.chat_input("Type your question here..."):
+    st.session_state.messages.append({"role": "human", "content": question})
+    
+    # Draw user question
+    with st.chat_message("human"):
+        st.markdown(question)
 
-        # Display the existing chat messages
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+    # Extract the message text from the output
+    with st.spinner("Generating response..."):
+        output = run_flow_from_json(flow="RAG.json",
+                            input_value=question,
+                            fallback_to_env_vars=True, # False by default
+                            tweaks=TWEAKS)
+        result_data = output[0].outputs[0].results['message']
 
-        # Chat input
-        if prompt := st.chat_input("Type your question here..."):
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
+        if result_data and hasattr(result_data, 'data'):
+            response_data = result_data.data
+            answer = response_data.get('text', "Please contact a professional doctor for further assistance.")
+        else:
+            answer = "Please contact a professional doctor for further assistance."
+        
+        # Store the bot's answer in a session object for redrawing next time
+        st.session_state.messages.append({"role": "assistant", "content": answer})
 
-            # Generate a response using the OpenAI API
-            with st.spinner("Generating response..."):
-                response = openai.ChatCompletion.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": m["role"], "content": m["content"]}
-                        for m in st.session_state.messages
-                    ]
-                )
-                reply = response.choices[0].message["content"]
-
-            # Display the response
-            with st.chat_message("assistant"):
-                st.markdown(reply)
-            st.session_state.messages.append({"role": "assistant", "content": reply})
-
-        # Reset chat button
-        if st.button("Reset Chat"):
-            st.session_state.messages = []
-            st.experimental_rerun()
-
-    except openai.NotFoundError:
-        st.error("The provided key is invalid. Please check and try again.")
-    except Exception as e:
-        st.error(f"An unexpected error occurred: Whoops! It seems like your Key is not valid, Please check and try again.")
-
-# Footer
-st.markdown("---")
-st.markdown("*Disclaimer: This AI assistant is for informational purposes only and should not replace professional medical advice.*")
+    # Draw the bot's answer
+    with st.chat_message('assistant'):
+        st.markdown(answer)
