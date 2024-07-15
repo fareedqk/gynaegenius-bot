@@ -1,4 +1,4 @@
-import streamlit_app as st
+import streamlit as st
 from langflow.load import run_flow_from_json
 from PIL import Image
 import json
