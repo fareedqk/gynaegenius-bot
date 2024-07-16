@@ -53,6 +53,10 @@ streamlit run streamlit_app.py
 
 ## 📸 Screenshots
 
+<ins>**Vercel Web Interface**</ins>
+
+![Vercel Web Interface](assets/gynae-genius-vercel.png)
+
 <ins>**Streamlit App Interface**</ins>
 
 ![Streamlit App Interface](assets/gynae-genius-st.png)
