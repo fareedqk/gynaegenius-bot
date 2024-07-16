@@ -53,8 +53,9 @@ streamlit run streamlit_app.py
 
 ## 📸 Screenshots
 
-![Streamlit App Interface](path/to/streamlit_screenshot.png)
-![Vercel App Interface](path/to/vercel_screenshot.png)
+<ins>**Streamlit App Interface**</ins>
+
+![Streamlit App Interface](assets/gynae-genius-st.png)
 
 ## 🤝 Contributing
 
